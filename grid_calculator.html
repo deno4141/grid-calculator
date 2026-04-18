@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Grid Calculator</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C9922A;--gold-light:#E8B84B;
+  --bg:#0D0D0D;--bg2:#141414;--bg3:#1C1C1C;
+  --border:rgba(201,146,42,0.2);--border-hi:rgba(201,146,42,0.5);
+  --text:#E8E0D0;--text-dim:#8A8070;--text-muted:#5A5248;
+  --red:#C0392B;--amber:#D4830A;--green:#2E7D52;--blue:#1A5FA8;--purple:#5B3FAF;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;-webkit-text-size-adjust:100%}
+
+.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.hdr-icon{width:28px;height:28px;background:var(--gold);border-radius:4px;flex-shrink:0}
+.hdr-title{font-size:15px;font-weight:600;color:var(--gold-light);letter-spacing:0.04em}
+.hdr-sub{font-size:10px;color:var(--text-dim);margin-top:1px}
+
+.wrap{padding:16px}
+
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+.card-title{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fg.tri{grid-template-columns:1fr 1fr 1fr}
+.fg.one{grid-template-columns:1fr;margin-bottom:0}
+@media(max-width:380px){.fg.tri{grid-template-columns:1fr 1fr}}
+
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:10px;color:var(--text-dim);letter-spacing:0.05em}
+.field input,.field select{background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:16px;padding:9px 10px;outline:none;width:100%;-webkit-appearance:none;appearance:none}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9922A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field input::placeholder{color:var(--text-muted)}
+.field input:focus,.field select:focus{border-color:var(--gold)}
+.hint{font-size:10px;color:var(--text-muted);line-height:1.5;margin-top:2px}
+
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.met{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:11px 12px;border-top:2px solid var(--gold)}
+.met.red{border-top-color:var(--red)}
+.met.amber{border-top-color:var(--amber)}
+.met.green{border-top-color:var(--green)}
+.met.blue{border-top-color:var(--blue)}
+.met-lbl{font-size:9px;color:var(--text-muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px}
+.met-val{font-size:17px;font-weight:600;color:var(--text)}
+.met.red .met-val{color:#E05A4E}
+.met.amber .met-val{color:#E8A020}
+.met.green .met-val{color:#3DA870}
+.met.blue .met-val{color:#4A9AE0}
+
+.ibox{border-radius:6px;padding:14px;margin-bottom:14px}
+.ibox.red{background:rgba(192,57,43,0.1);border:1px solid rgba(192,57,43,0.3);border-left:3px solid #C0392B}
+.ibox.purple{background:rgba(91,63,175,0.1);border:1px solid rgba(91,63,175,0.3);border-left:3px solid #5B3FAF}
+.ibox-title{font-size:10px;font-weight:600;letter-spacing:0.07em;text-transform:uppercase;margin-bottom:12px}
+.ibox.red .ibox-title{color:#E05A4E}
+.ibox.purple .ibox-title{color:#8870D8}
+.ibox-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ibox-item .k{font-size:10px;color:var(--text-dim);margin-bottom:3px}
+.ibox-item .v{font-size:15px;font-weight:600}
+.ibox.red .ibox-item .v{color:#E05A4E}
+.ibox.purple .ibox-item .v{color:#8870D8}
+.ibox .note{font-size:10px;color:var(--text-muted);margin-top:10px;line-height:1.6}
+.ibox .sub{font-size:10px;color:var(--text-muted);margin-top:6px}
+
+.empty-state{padding:40px 16px;text-align:center;color:var(--text-muted);font-size:13px;line-height:1.6}
+
+.tbl-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.tbl-head{padding:11px 14px;font-size:10px;font-weight:600;color:var(--gold);letter-spacing:0.1em;text-transform:uppercase;background:var(--bg3);border-bottom:1px solid var(--border)}
+.tbl-wrap{overflow-x:auto;max-height:360px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:380px}
+thead{position:sticky;top:0;z-index:1}
+th{text-align:right;padding:8px 10px;background:var(--bg3);color:var(--text-muted);font-size:9px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:500}
+th:first-child{text-align:left}
+td{padding:7px 10px;border-bottom:1px solid rgba(201,146,42,0.07);text-align:right;color:var(--text-dim)}
+td:first-child{text-align:left;color:var(--text-muted)}
+td.price{color:var(--gold-light);font-weight:500}
+td.cum{color:var(--text)}
+td.fl{color:#E05A4E}
+td.flc{color:#E05A4E;font-weight:500}
+tr:last-child td{border-bottom:none}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-icon"></div>
+  <div>
+    <div class="hdr-title">Grid Calculator</div>
+    <div class="hdr-sub">Margin · Drawdown · Floating Loss</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <div class="card-title">Parameters</div>
+    <div class="fg">
+      <div class="field"><label>ราคาต่ำสุด (USD)</label><input type="number" id="priceMin" step="1" min="0" inputmode="decimal" placeholder="เช่น 4500"></div>
+      <div class="field"><label>ราคาสูงสุด (USD)</label><input type="number" id="priceMax" step="1" min="0" inputmode="decimal" placeholder="เช่น 5000"></div>
+      <div class="field"><label>ระยะห่าง Grid ($)</label><input type="number" id="gridStep" step="1" min="1" inputmode="decimal" placeholder="เช่น 10"></div>
+      <div class="field"><label>Lot size / order</label><input type="number" id="lotSize" step="0.01" min="0.01" inputmode="decimal" placeholder="เช่น 0.01"></div>
+    </div>
+    <div class="fg tri">
+      <div class="field">
+        <label>Leverage</label>
+        <select id="leverage">
+          <option value="" selected>—</option>
+          <option value="2000">1:2000</option>
+          <option value="1000">1:1000</option>
+          <option value="500">1:500</option>
+          <option value="200">1:200</option>
+          <option value="100">1:100</option>
+          <option value="50">1:50</option>
+          <option value="25">1:25</option>
+          <option value="5">1:5</option>
+          <option value="1">1:1</option>
+        </select>
+      </div>
+      <div class="field"><label>Contract (oz/lot)</label><input type="number" id="contractSize" step="1" min="1" inputmode="decimal" placeholder="เช่น 100"></div>
+    </div>
+    <div class="fg one" style="margin-top:10px">
+      <div class="field">
+        <label>Floor price — คำนวณ floating loss (USD)</label>
+        <input type="number" id="floorPrice" step="1" min="0" inputmode="decimal" placeholder="เช่น 0">
+        <div class="hint">0 = ราคาเป็นศูนย์ | ใส่ค่าอื่นเพื่อสมมติว่าราคาร่วงถึงจุดนั้น</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultArea"></div>
+</div>
+
+<script>
+function fmt(n, d) {
+  if (d === undefined) d = 2;
+  var fixed = Math.abs(n).toFixed(d);
+  var parts = fixed.split('.');
+  var intPart = parts[0];
+  var decPart = parts[1] || '';
+  var result = '';
+  for (var i = 0; i < intPart.length; i++) {
+    if (i > 0 && (intPart.length - i) % 3 === 0) result += ',';
+    result += intPart[i];
+  }
+  if (d > 0) result += '.' + decPart;
+  return (n < 0 ? '-' : '') + result;
+}
+
+function getNum(id) {
+  var raw = document.getElementById(id).value;
+  if (raw === '' || raw === null) return null;
+  var v = parseFloat(raw);
+  return isNaN(v) ? null : v;
+}
+function getInt(id) {
+  var raw = document.getElementById(id).value;
+  if (raw === '' || raw === null) return null;
+  var v = parseInt(raw);
+  return isNaN(v) ? null : v;
+}
+
+function showEmpty(msg) {
+  document.getElementById('resultArea').innerHTML =
+    '<div class="card"><div class="empty-state">'+msg+'</div></div>';
+}
+
+function calc() {
+  try {
+    var pMin  = getNum('priceMin');
+    var pMax  = getNum('priceMax');
+    var step  = getNum('gridStep');
+    var lot   = getNum('lotSize');
+    var lev   = getInt('leverage');
+    var cSize = getNum('contractSize');
+    var floor = getNum('floorPrice');
+
+    // Required fields check
+    var missing = [];
+    if (pMin === null) missing.push('ราคาต่ำสุด');
+    if (pMax === null) missing.push('ราคาสูงสุด');
+    if (step === null) missing.push('ระยะห่าง Grid');
+    if (lot === null)  missing.push('Lot size');
+    if (lev === null)  missing.push('Leverage');
+    if (cSize === null) missing.push('Contract');
+
+    if (missing.length > 0) {
+      showEmpty('กรุณากรอกข้อมูล:<br><span style="color:var(--gold);font-size:12px">'+missing.join(', ')+'</span>');
+      return;
+    }
+
+    if (floor === null) floor = 0;
+    floor = Math.max(0, floor);
+
+    if (pMax <= pMin) {
+      showEmpty('ราคาสูงสุดต้องมากกว่าราคาต่ำสุด');
+      return;
+    }
+    if (step <= 0 || lot <= 0 || lev <= 0 || cSize <= 0) {
+      showEmpty('Grid step, Lot, Leverage, Contract ต้องมากกว่า 0');
+      return;
+    }
+
+    var levels = [];
+    for (var p = pMin; p <= pMax + 0.0001; p = Math.round((p + step) * 10000) / 10000)
+      levels.push(parseFloat(p.toFixed(4)));
+    var n = levels.length;
+
+    var mpo = function(price) { return (price * lot * cSize) / lev; };
+
+    var totalM = 0;
+    for (var i = 0; i < n; i++) totalM += mpo(levels[i]);
+
+    var pip = lot * cSize * step;
+
+    var maxDD = 0;
+    for (var i = 0; i < n; i++) maxDD += (levels[i] - pMin) * lot * cSize;
+
+    var floatF = 0;
+    for (var i = 0; i < n; i++) floatF += Math.max(0, levels[i] - floor) * lot * cSize;
+
+    var recBal   = totalM + maxDD * 1.5;
+    var worstBal = totalM + floatF;
+
+    var cards = [
+      {l:'Grid Levels',       v:String(n),            c:''},
+      {l:'Orders ทั้งหมด',    v:String(n),            c:''},
+      {l:'Margin รวม',        v:'$'+fmt(totalM),      c:'blue'},
+      {l:'Margin/order avg',  v:'$'+fmt(n>0?totalM/n:0), c:''},
+      {l:'Max Drawdown',      v:'$'+fmt(maxDD),       c:'amber'},
+      {l:'กำไร/grid step',    v:'$'+fmt(pip),         c:'green'},
+    ];
+    var mHtml = '<div class="metrics">';
+    for (var i = 0; i < cards.length; i++)
+      mHtml += '<div class="met '+cards[i].c+'"><div class="met-lbl">'+cards[i].l+'</div><div class="met-val">'+cards[i].v+'</div></div>';
+    mHtml += '</div>';
+
+    var floorLbl = floor === 0 ? '$0 (ราคาเป็นศูนย์)' : '$'+fmt(floor, 0);
+    var floatHtml =
+      '<div class="ibox red">'+
+      '<div class="ibox-title">Floating Loss — ถ้าราคาร่วงถึง '+floorLbl+'</div>'+
+      '<div class="ibox-grid">'+
+      '<div class="ibox-item"><div class="k">Floating loss รวม</div><div class="v">$'+fmt(floatF)+'</div></div>'+
+      '<div class="ibox-item"><div class="k">เฉลี่ยต่อ order</div><div class="v">$'+fmt(n>0?floatF/n:0)+'</div></div>'+
+      '<div class="ibox-item"><div class="k">เงินรวม (margin+float)</div><div class="v">$'+fmt(worstBal)+'</div></div>'+
+      '</div>'+
+      '</div>';
+
+    var totalHtml =
+      '<div class="ibox purple">'+
+      '<div class="ibox-title">เงินที่ควรเตรียมขั้นต่ำ</div>'+
+      '<div class="ibox-grid">'+
+      '<div class="ibox-item"><div class="k">Margin + Drawdown x1.5</div><div class="v">$'+fmt(recBal)+'</div></div>'+
+      '<div class="ibox-item"><div class="k">Margin + Float (floor)</div><div class="v">$'+fmt(worstBal)+'</div></div>'+
+      '</div>'+
+      '<div class="sub">margin $'+fmt(totalM)+' + buffer $'+fmt(maxDD*1.5)+'</div>'+
+      '</div>';
+
+    var rows = '';
+    var cumM = 0, cumF = 0;
+    for (var i = 0; i < n; i++) {
+      var lv = levels[i];
+      var m = mpo(lv); cumM += m;
+      var fh = Math.max(0, lv - floor) * lot * cSize; cumF += fh;
+      rows += '<tr>'+
+        '<td>'+(i+1)+'</td>'+
+        '<td class="price">$'+fmt(lv, lv % 1 === 0 ? 0 : 2)+'</td>'+
+        '<td>$'+fmt(m)+'</td>'+
+        '<td class="cum">$'+fmt(cumM)+'</td>'+
+        '<td class="fl">$'+fmt(fh)+'</td>'+
+        '<td class="flc">$'+fmt(cumF)+'</td>'+
+        '</tr>';
+    }
+
+    var tblHtml =
+      '<div class="tbl-card">'+
+      '<div class="tbl-head">Grid Level Detail</div>'+
+      '<div class="tbl-wrap"><table>'+
+      '<thead><tr>'+
+      '<th>#</th><th>ราคา</th><th>Margin/order</th><th>Margin สะสม</th>'+
+      '<th>Float ถึง $'+fmt(floor,0)+'</th><th>Float สะสม</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+      '</table></div></div>';
+
+    document.getElementById('resultArea').innerHTML = mHtml + floatHtml + totalHtml + tblHtml;
+
+  } catch(e) {
+    showEmpty('<span style="color:#E05A4E">Error: '+e.message+'</span>');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var inputs = document.querySelectorAll('input, select');
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener('input', calc);
+    inputs[i].addEventListener('change', calc);
+  }
+  calc();
+});
+</script>
+</body>
+</html>
